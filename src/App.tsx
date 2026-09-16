@@ -82,15 +82,25 @@ function CarouselItem({
   const isLargeCoverFriend =
     friend.id === 'friend1' || friend.id === 'friend4' || friend.id === 'friend5'
 
+  // Moksha's photo is a tight headshot / close-up face cutout, so we scale it down and center it nicely
+  const isMoksha = friend.id === 'friend6'
+
   return (
     <div
       className="absolute"
       style={{
         ...style,
-        ...(role === 'center' && !isLargeCoverFriend
+        ...(role === 'center' && !isLargeCoverFriend && !isMoksha
           ? {
               height: isMobile ? '68%' : '98%',
               transform: `translateX(-50%) scale(${isMobile ? 1.45 : 1.9})`,
+            }
+          : {}),
+        ...(role === 'center' && isMoksha
+          ? {
+              height: isMobile ? '54%' : '78%',
+              bottom: isMobile ? '24%' : '6%',
+              transform: `translateX(-50%) scale(${isMobile ? 1.22 : 1.48})`,
             }
           : {}),
         aspectRatio: '0.6 / 1',

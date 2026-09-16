@@ -80,7 +80,7 @@ function CarouselItem({
 
   // Determine scaling / size per friend so character photos cover the background name consistently
   const isLargeCoverFriend =
-    friend.id === 'friend1' || friend.id === 'friend4' || friend.id === 'friend5'
+    friend.id === 'friend1' || friend.id === 'friend2' || friend.id === 'friend4' || friend.id === 'friend5'
 
   // Moksha's photo is a tight headshot / close-up face cutout, so we scale it down and center it nicely
   const isMoksha = friend.id === 'friend6'

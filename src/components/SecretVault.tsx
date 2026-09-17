@@ -30,12 +30,26 @@ const KEYPAD_BUTTONS = [
   { digit: '7' },
   { digit: '8' },
   { digit: '9' },
+  { digit: '*' },
+  { digit: '0' },
+  { digit: '#' },
 ]
+
+// Friend-specific passcode hints
+const PASSCODE_HINTS: Record<string, string> = {
+  friend1: "hint- it's swamy's fav code",
+  friend2: "hint- it's eshwar's fav code",
+  friend3: "hint- it's darshan's fav code",
+  friend4: "hint- it's jashwanth's fav code",
+  friend5: "hint- it's shiva's fav code",
+  friend6: "hint- it's moksha's fav code",
+}
 
 export default function SecretVault({ friend, isOpen, onClose }: SecretVaultProps) {
   const [isUnlocked, setIsUnlocked] = useState(false)
   const [pin, setPin] = useState('')
   const [isShaking, setIsShaking] = useState(false)
+  const [isSuccess, setIsSuccess] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
   const [activeTab, setActiveTab] = useState<'all' | 'photos' | 'videos'>('all')
   const [selectedMedia, setSelectedMedia] = useState<VaultMediaItem | null>(null)
@@ -47,6 +61,7 @@ export default function SecretVault({ friend, isOpen, onClose }: SecretVaultProp
       setPin('')
       setErrorMessage('')
       setIsShaking(false)
+      setIsSuccess(false)
       setIsUnlocked(false)
       setSelectedMedia(null)
       setActiveTab('all')
@@ -56,27 +71,32 @@ export default function SecretVault({ friend, isOpen, onClose }: SecretVaultProp
   const handleDigitClick = useCallback(
     (digit: string) => {
       if (pin.length >= 4 || isUnlocked) return
+      if (digit === '*' || digit === '#') return // Ignore * and # for PIN entry
+
       const newPin = pin + digit
       setPin(newPin)
       setErrorMessage('')
+      setIsSuccess(false)
 
       if (newPin.length === 4) {
         if (newPin === friend.passcode) {
           // Correct PIN
+          setIsSuccess(true)
           setTimeout(() => {
             setIsUnlocked(true)
             setPin('')
-          }, 200)
+            setIsSuccess(false)
+          }, 300)
         } else {
           // Incorrect PIN -> Trigger shake animation
           setTimeout(() => {
             setIsShaking(true)
-            setErrorMessage('Incorrect password')
+            setErrorMessage('Incorrect passcode')
             setTimeout(() => {
               setPin('')
               setIsShaking(false)
-            }, 700)
-          }, 150)
+            }, 600)
+          }, 100)
         }
       }
     },
@@ -87,6 +107,7 @@ export default function SecretVault({ friend, isOpen, onClose }: SecretVaultProp
     if (pin.length > 0) {
       setPin((prev) => prev.slice(0, -1))
       setErrorMessage('')
+      setIsSuccess(false)
     }
   }, [pin.length])
 
@@ -134,463 +155,432 @@ export default function SecretVault({ friend, isOpen, onClose }: SecretVaultProp
     }
   }
 
+  // Color scheme from reference design
+  const red = '#8c0001'
+  const redDark = '#6e0000'
+  const pink = '#ffe1e1'
+  const pinkSoft = '#f6c9c9'
+  const cream = '#fdf6ee'
+
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-4 overflow-y-auto"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto"
       style={{
-        backgroundColor: 'rgba(10, 10, 18, 0.94)',
+        backgroundColor: 'rgba(140, 0, 1, 0.95)',
         backdropFilter: 'blur(16px)',
-        fontFamily: "'Inter', sans-serif",
+        fontFamily: "'Baloo 2', 'Quicksand', system-ui, sans-serif",
       }}
     >
       <style>{`
-        @keyframes pinShake {
-          0%, 100% { transform: translateX(0); }
-          20%, 60% { transform: translateX(-12px); }
-          40%, 80% { transform: translateX(12px); }
+        @keyframes shake {
+          10%, 90% { transform: translateX(-3px); }
+          20%, 80% { transform: translateX(5px); }
+          30%, 50%, 70% { transform: translateX(-8px); }
+          40%, 60% { transform: translateX(8px); }
         }
-        .animate-pin-shake {
-          animation: pinShake 0.45s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+        .code-boxes.shake { animation: shake 0.4s ease; }
+        .code-box.pop { transform: scale(1.15); }
+        @keyframes popIn {
+          0% { transform: scale(0.8); opacity: 0; }
+          100% { transform: scale(1); opacity: 1; }
         }
-        @keyframes pulseGlow {
-          0%, 100% { box-shadow: 0 0 15px rgba(255,255,255,0.15); }
-          50% { box-shadow: 0 0 30px ${friend.favColor}88; }
+        .key.pressed {
+          transform: translateY(3px);
+          box-shadow: 0 1px 0 rgba(0,0,0,0.18);
+          background: #ffcccc;
         }
-        .vault-card-glow {
-          animation: pulseGlow 3s infinite ease-in-out;
-        }
-        @keyframes keypadEnter {
-          0% { opacity: 0; transform: scale(0.8); }
-          100% { opacity: 1; transform: scale(1); }
-        }
-        .keypad-enter {
-          animation: keypadEnter 0.35s ease-out forwards;
+        .polaroid { transform: rotate(-2.5deg); }
+        @media (prefers-reduced-motion: reduce) {
+          .polaroid { transform: none; }
+          .code-boxes.shake { animation: none; }
+          .key.pressed { transform: none; }
         }
       `}</style>
 
-      {/* Main Container */}
+      {/* Main Layout - Split Screen */}
       <div
-        className="relative w-full h-full sm:h-auto sm:max-h-[92vh] sm:max-w-4xl sm:rounded-3xl flex flex-col overflow-hidden"
+        className="relative w-full max-w-5xl h-[90vh] max-h-[700px] sm:max-h-[800px] rounded-3xl overflow-hidden flex"
         style={{
-          backgroundColor: '#12131F',
-          border: '1px solid rgba(255, 255, 255, 0.12)',
-          boxShadow: `0 25px 50px -12px rgba(0, 0, 0, 0.8), 0 0 40px ${friend.favColor}22`,
+          backgroundColor: cream,
+          boxShadow: '0 25px 50px rgba(0,0,0,0.45), 0 8px 18px rgba(0,0,0,0.3)',
         }}
       >
-        {/* Header Bar */}
-        <div
-          className="flex items-center justify-between px-5 py-4 border-b border-white/10"
-          style={{ backgroundColor: 'rgba(255,255,255,0.03)' }}
-        >
-          <div className="flex items-center gap-3">
-            <div
-              className="w-10 h-10 rounded-full flex items-center justify-center overflow-hidden border border-white/20"
-              style={{ backgroundColor: friend.favColor }}
-            >
+        {/* LEFT SIDE - Polaroid Photo */}
+        {!isUnlocked && (
+          <div className="hidden lg:flex-1 flex items-center justify-center p-8 relative polaroid-wrap">
+            <div className="polaroid relative" style={{ width: '100%', maxWidth: 420 }}>
+              {/* Photo */}
               <img
                 src={friend.photo}
                 alt={friend.name}
-                className="w-full h-full object-cover object-top"
+                style={{
+                  display: 'block',
+                  width: '100%',
+                  aspectRatio: '1/1',
+                  objectFit: 'cover',
+                  background: '#333',
+                }}
+              />
+
+              {/* Bow decoration - top right */}
+              <svg className="absolute" style={{ top: '-38px', right: '-46px', width: '150px', height: 'auto', filter: 'drop-shadow(0 6px 8px rgba(0,0,0,0.35))', transform: 'rotate(4deg)' }} viewBox="0 0 200 160" xmlns="http://www.w3.org/2000/svg">
+                <g stroke="#2f6fb0" strokeWidth="5" strokeLinejoin="round" strokeLinecap="round">
+                  <path d="M100 78 C60 30 10 30 10 60 C10 92 60 92 100 78 Z" fill="#7fbdf0"/>
+                  <path d="M100 78 C140 30 190 30 190 60 C190 92 140 92 100 78 Z" fill="#a9d6ff"/>
+                  <path d="M100 78 C90 100 80 130 60 150 C75 135 90 130 100 118 C110 130 125 135 140 150 C120 130 110 100 100 78 Z" fill="#7fbdf0"/>
+                  <circle cx="100" cy="78" r="15" fill="#5aa0e0"/>
+                </g>
+              </svg>
+
+              {/* Teddy bear decoration - bottom left */}
+              <img
+                className="absolute"
+                style={{ left: '-46px', bottom: '-58px', width: '150px', height: '150px', objectFit: 'contain', filter: 'drop-shadow(0 8px 10px rgba(0,0,0,0.4))' }}
+                src="https://thumbnail.imgbin.com/25/14/15/icon-cute-teddy-bear-with-hat-and-bow-tie-jN5sQdcz_t.jpg"
+                alt="Teddy bear with hat and bow tie"
               />
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span
-                  style={{
-                    fontFamily: "'Anton', sans-serif",
-                    letterSpacing: '0.05em',
-                    fontSize: '1.1rem',
-                    color: 'white',
-                  }}
+          </div>
+        )}
+
+        {/* RIGHT SIDE - Passcode Panel / Vault Content */}
+        <div
+          className="flex-1 flex flex-col"
+          style={{
+            padding: isMobile ? '2rem 1.5rem' : '3rem 4rem',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: isUnlocked ? 'flex-start' : 'center',
+            minWidth: 0,
+          }}
+        >
+          {!isUnlocked ? (
+            /* ============================================================ */
+            /* PASSCODE LOCK SCREEN                                         */
+            /* ============================================================ */
+            <div className="w-full max-w-md mx-auto" style={{ textAlign: isMobile ? 'center' : 'left' }}>
+              {/* Close button */}
+              <div className="mb-4" style={{ textAlign: 'right' }}>
+                <button
+                  onClick={onClose}
+                  className="w-10 h-10 rounded-full flex items-center justify-center text-white/80 hover:text-white transition-all"
+                  style={{ backgroundColor: 'rgba(140, 0, 1, 0.1)', border: '1px solid rgba(140, 0, 1, 0.2)' }}
+                  aria-label="Close"
                 >
-                  {friend.name}&apos;S VAULT
-                </span>
-                <span
-                  className="text-xs px-2 py-0.5 rounded-full font-semibold"
-                  style={{
-                    backgroundColor: isUnlocked ? 'rgba(74, 222, 128, 0.18)' : 'rgba(248, 113, 113, 0.18)',
-                    color: isUnlocked ? '#4ade80' : '#f87171',
-                    border: `1px solid ${isUnlocked ? '#4ade8055' : '#f8717155'}`,
-                  }}
-                >
-                  {isUnlocked ? 'UNLOCKED' : 'LOCKED'}
-                </span>
+                  <X size={20} />
+                </button>
               </div>
-              <p className="text-xs text-white/50 m-0">
-                {isUnlocked ? 'Top secret photos, funny reels & archive' : 'Enter 4-digit password to unlock'}
+
+              {/* Title */}
+              <h1 className="mb-8" style={{
+                color: pink,
+                fontSize: isMobile ? 'clamp(28px, 6vw, 38px)' : 'clamp(28px, 3vw, 38px)',
+                fontWeight: 800,
+                letterSpacing: '0.5px',
+                margin: 0,
+              }}>
+                Enter Passcode
+              </h1>
+
+              {/* Code Boxes */}
+              <div
+                className="code-boxes mb-6 justify-center"
+                style={{
+                  display: 'flex',
+                  gap: '16px',
+                  ...(isShaking ? { animation: 'shake 0.4s ease' } : {}),
+                  ...(isSuccess ? {
+                    borderColor: '#8fe3a5',
+                    background: 'rgba(143, 227, 165, 0.15)'
+                  } : {}),
+                }}
+                role="status"
+                aria-live="polite"
+              >
+                {[0, 1, 2, 3].map((index) => {
+                  const isFilled = pin.length > index
+                  return (
+                    <div
+                      key={index}
+                      className="code-box transition-all duration-120"
+                      style={{
+                        width: isMobile ? 52 : 64,
+                        height: isMobile ? 52 : 64,
+                        border: `3px solid ${isFilled || isSuccess ? pink : pinkSoft}`,
+                        borderRadius: 14,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: isMobile ? 24 : 30,
+                        fontWeight: 800,
+                        color: cream,
+                        background: isFilled || isSuccess ? 'rgba(255, 225, 225, 0.08)' : 'transparent',
+                        transform: (isFilled && !isShaking) ? 'scale(1.15)' : 'scale(1)',
+                      }}
+                    >
+                      {isFilled ? '●' : ''}
+                    </div>
+                  )
+                })}
+              </div>
+
+              {/* Error Message */}
+              {errorMessage && (
+                <p className="mb-4 text-sm font-semibold text-center" style={{ color: '#ff6b6b' }}>
+                  {errorMessage}
+                </p>
+              )}
+
+              {/* Keypad */}
+              <div className="keypad" style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(3, 1fr)',
+                gap: isMobile ? '16px 18px' : '22px 26px',
+                maxWidth: isMobile ? '250px' : '310px',
+                margin: '0 auto',
+              }} role="group" aria-label="Passcode keypad">
+                {KEYPAD_BUTTONS.map((btn) => {
+                  const isActionKey = btn.digit === '*' || btn.digit === '#'
+                  return (
+                    <button
+                      key={btn.digit}
+                      onClick={() => isActionKey ? (btn.digit === '*' ? handleDelete() : null) : handleDigitClick(btn.digit)}
+                      className="key"
+                      style={{
+                        width: isMobile ? 72 : 84,
+                        height: isMobile ? 72 : 84,
+                        borderRadius: '50%',
+                        border: 'none',
+                        background: isActionKey ? 'transparent' : pink,
+                        color: isActionKey ? red : redDark,
+                        fontSize: isActionKey ? (isMobile ? 22 : 26) : (isMobile ? 28 : 32),
+                        fontWeight: 800,
+                        fontFamily: 'inherit',
+                        cursor: isActionKey ? 'default' : 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        boxShadow: isActionKey ? 'none' : '0 4px 0 rgba(0,0,0,0.18), inset 0 -3px 0 rgba(0,0,0,0.06)',
+                        transition: 'transform 0.08s ease, box-shadow 0.08s ease, background 0.15s ease',
+                        userSelect: 'none',
+                        WebkitTapHighlightColor: 'transparent',
+                        opacity: isActionKey ? 0.5 : 1,
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!isActionKey) {
+                          e.currentTarget.style.background = '#fff'
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!isActionKey) {
+                          e.currentTarget.style.background = pink
+                        }
+                      }}
+                      onMouseDown={(e) => {
+                        if (!isActionKey) {
+                          e.currentTarget.style.transform = 'translateY(3px)'
+                          e.currentTarget.style.boxShadow = '0 1px 0 rgba(0,0,0,0.18)'
+                          e.currentTarget.style.background = '#ffcccc'
+                        }
+                      }}
+                      onMouseUp={(e) => {
+                        if (!isActionKey) {
+                          e.currentTarget.style.transform = 'translateY(0)'
+                          e.currentTarget.style.boxShadow = '0 4px 0 rgba(0,0,0,0.18), inset 0 -3px 0 rgba(0,0,0,0.06)'
+                          e.currentTarget.style.background = pink
+                        }
+                      }}
+                      disabled={isActionKey}
+                      aria-label={btn.digit === '*' ? 'Clear' : btn.digit === '#' ? 'Enter' : btn.digit}
+                    >
+                      {btn.digit === '*' ? <Delete size={isMobile ? 22 : 26} /> : btn.digit === '#' ? '⏎' : btn.digit}
+                    </button>
+                  )
+                })}
+              </div>
+
+              {/* Hint */}
+              <p className="hint mt-6" style={{
+                color: pink,
+                fontSize: isMobile ? 18 : 20,
+                fontWeight: 700,
+                opacity: 0.9,
+                textAlign: 'center',
+              }}>
+                {PASSCODE_HINTS[friend.id] || "hint- it's their fav code"}
               </p>
             </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            {isUnlocked && (
-              <button
-                onClick={() => {
-                  setIsUnlocked(false)
-                  setPin('')
-                }}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold text-white/80 hover:text-white bg-white/10 hover:bg-white/20 transition-all cursor-pointer border border-white/15"
-                title="Lock Vault"
-              >
-                <Lock size={14} />
-                Lock
-              </button>
-            )}
-            <button
-              onClick={onClose}
-              className="w-9 h-9 rounded-full flex items-center justify-center bg-white/10 hover:bg-white/20 text-white/80 hover:text-white transition-all cursor-pointer border border-white/15"
-              aria-label="Close"
-            >
-              <X size={18} />
-            </button>
-          </div>
-        </div>
-
-        {/* Content Area */}
-        {!isUnlocked ? (
-          /* ============================================================ */
-          /* PASSCODE LOCK SCREEN                                         */
-          /* ============================================================ */
-          <div className="flex-1 flex flex-col items-center justify-center p-6 sm:p-8 min-h-[540px]">
-            {/* Friend Avatar with themed circle */}
-            <div className="relative mb-2">
-              <div
-                className="w-32 h-32 sm:w-36 sm:h-36 rounded-full overflow-hidden p-2 flex items-center justify-center vault-card-glow"
-                style={{
-                  background: `linear-gradient(135deg, ${friend.favColor}, #ffffff)`,
-                  padding: '4px',
-                }}
-              >
-                <div
-                  className="w-full h-full rounded-full overflow-hidden flex items-center justify-center"
-                  style={{
-                    backgroundColor: 'rgba(26, 26, 46, 0.9)',
-                    border: `3px solid ${friend.favColor}`,
-                  }}
-                >
-                  <img
-                    src={friend.photo}
-                    alt={friend.name}
-                    className="w-full h-full object-contain object-bottom"
-                  />
+          ) : (
+            /* ============================================================ */
+            /* UNLOCKED GALLERY VAULT                                       */
+            /* ============================================================ */
+            <div className="flex-1 overflow-y-auto w-full">
+              {/* Vault Header */}
+              <div className="mb-6 flex items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ backgroundColor: friend.favColor }}>
+                    <Unlock size={24} color="white" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl sm:text-2xl font-bold m-0 flex items-center gap-2" style={{ color: '#1a1a2e' }}>
+                      {friend.name}'S SECRET ARCHIVE
+                      <Sparkles size={20} color="#fbbf24" />
+                    </h2>
+                    <p className="text-sm m-0" style={{ color: '#666' }}>
+                      Vault unlocked successfully. Tap any photo or video to inspect!
+                    </p>
+                  </div>
                 </div>
-              </div>
-              {/* Lock icon overlay */}
-              <div
-                className="absolute -bottom-2 -right-2 w-10 h-10 rounded-full flex items-center justify-center shadow-lg border-2 border-white/10"
-                style={{ backgroundColor: '#e11d48', top: 'auto' }}
-              >
-                <Lock size={20} color="white" />
-              </div>
-            </div>
-
-            {/* Friend Name */}
-            <h2
-              style={{
-                fontFamily: "'Anton', sans-serif",
-                fontSize: isMobile ? '1.9rem' : '2.5rem',
-                letterSpacing: '0.05em',
-                color: 'white',
-                margin: '0.5rem 0 0.25rem 0',
-                textTransform: 'uppercase',
-                textAlign: 'center',
-              }}
-            >
-              {friend.name}
-            </h2>
-
-            {/* PIN Indicator Dots */}
-            <div
-              className={`flex items-center justify-center gap-3 mb-2 ${
-                isShaking ? 'animate-pin-shake' : ''
-              }`}
-            >
-              {[0, 1, 2, 3].map((index) => {
-                const isFilled = pin.length > index
-                return (
-                  <div
-                    key={index}
-                    className="transition-all duration-200"
-                    style={{
-                      width: 18,
-                      height: 18,
-                      borderRadius: '50%',
-                      backgroundColor: isFilled ? friend.favColor : 'transparent',
-                      border: isFilled
-                        ? `2.5px solid ${friend.favColor}`
-                        : '2px solid rgba(255, 255, 255, 0.45)',
-                      boxShadow: isFilled
-                        ? `0 0 12px ${friend.favColor}`
-                        : 'none',
-                      transform: isFilled ? 'scale(1.15)' : 'scale(1)',
-                    }}
-                  />
-                )
-              })}
-            </div>
-
-            {/* Error Message */}
-            <div className="h-6 mb-3 flex items-center justify-center">
-              {errorMessage && (
-                <span className="text-xs font-semibold text-red-400 bg-red-950/60 px-3 py-1 rounded-full border border-red-500/30">
-                  {errorMessage}
-                </span>
-              )}
-            </div>
-
-            {/* Numeric Keypad */}
-            <div className="max-w-[240px] w-full">
-              <style>{`
-                .keypad-grid {
-                  display: grid;
-                  grid-template-columns: repeat(3, 1fr);
-                  gap: 8px;
-                }
-                @media (min-width: 640px) {
-                  .keypad-grid { gap: 12px; }
-                }
-              `}</style>
-              <div className="keypad-grid">
-                {KEYPAD_BUTTONS.map((btn) => (
-                  <button
-                    key={btn.digit}
-                    onClick={() => handleDigitClick(btn.digit)}
-                    className="keypad-enter flex items-center justify-center rounded-2xl text-white text-3xl font-bold transition-all duration-150 active:scale-92 cursor-pointer select-none"
-                    style={{
-                      height: isMobile ? 62 : 68,
-                      backgroundColor: 'rgba(255, 255, 255, 0.08)',
-                      border: '1px solid rgba(255, 255, 255, 0.15)',
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.18)'
-                      e.currentTarget.style.borderColor = friend.favColor
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.08)'
-                      e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.15)'
-                    }}
-                  >
-                    {btn.digit}
-                  </button>
-                ))}
-
-                {/* Clear button */}
                 <button
-                  onClick={() => {
-                    setPin('')
-                    setErrorMessage('')
-                  }}
-                  className="keypad-enter flex items-center justify-center rounded-2xl text-sm font-semibold text-white/70 hover:text-white transition-all active:scale-92 cursor-pointer"
+                  onClick={() => { setIsUnlocked(false); setPin('') }}
+                  className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition-all cursor-pointer"
                   style={{
-                    height: isMobile ? 62 : 68,
-                    backgroundColor: 'rgba(255, 255, 255, 0.03)',
-                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                    backgroundColor: 'rgba(140, 0, 1, 0.1)',
+                    color: red,
+                    border: `1px solid ${red}33`,
                   }}
+                  title="Lock Vault"
                 >
-                  CLEAR
+                  <Lock size={16} />
+                  Lock
                 </button>
-
-                {/* Zero */}
-                <button
-                  onClick={() => handleDigitClick('0')}
-                  className="keypad-enter flex items-center justify-center rounded-2xl text-white text-3xl font-bold transition-all duration-150 active:scale-92 cursor-pointer select-none"
-                  style={{
-                    height: isMobile ? 62 : 68,
-                    backgroundColor: 'rgba(255, 255, 255, 0.08)',
-                    border: '1px solid rgba(255, 255, 255, 0.15)',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.18)'
-                    e.currentTarget.style.borderColor = friend.favColor
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.08)'
-                    e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.15)'
-                  }}
-                >
-                  0
-                </button>
-
-                {/* Backspace */}
-                <button
-                  onClick={handleDelete}
-                  className="keypad-enter flex items-center justify-center rounded-2xl text-white/70 hover:text-white transition-all active:scale-92 cursor-pointer"
-                  style={{
-                    height: isMobile ? 62 : 68,
-                    backgroundColor: 'rgba(255, 255, 255, 0.03)',
-                    border: '1px solid rgba(255, 255, 255, 0.08)',
-                  }}
-                  aria-label="Delete"
-                >
-                  <Delete size={22} />
-                </button>
-              </div>
-            </div>
-          </div>
-        ) : (
-          /* ============================================================ */
-          /* UNLOCKED GALLERY VAULT                                       */
-          /* ============================================================ */
-          <div className="flex-1 flex flex-col overflow-y-auto p-4 sm:p-6">
-            {/* Vault Banner */}
-            <div
-              className="rounded-2xl p-4 sm:p-5 mb-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3"
-              style={{
-                background: `linear-gradient(135deg, ${friend.favColor}33, rgba(255,255,255,0.06))`,
-                border: `1px solid ${friend.favColor}55`,
-              }}
-            >
-              <div className="flex items-center gap-3">
-                <div
-                  className="w-10 h-10 rounded-xl flex items-center justify-center"
-                  style={{ backgroundColor: friend.favColor }}
-                >
-                  <Unlock size={20} color="white" />
-                </div>
-                <div>
-                  <h3 className="text-base sm:text-lg font-bold text-white m-0 flex items-center gap-1.5">
-                    {friend.name}&apos;S SECRET ARCHIVE
-                    <Sparkles size={16} color="#fbbf24" />
-                  </h3>
-                  <p className="text-xs text-white/70 m-0">
-                    Vault unlocked successfully. Tap any photo or video to inspect!
-                  </p>
-                </div>
               </div>
 
               {/* Category Filter Tabs */}
-              <div className="flex items-center gap-1.5 bg-black/40 p-1 rounded-xl border border-white/10 self-stretch sm:self-auto justify-center">
+              <div className="mb-6 flex items-center gap-2 bg-gray-100 p-1 rounded-xl" style={{ border: '1px solid #eee' }}>
                 <button
                   onClick={() => setActiveTab('all')}
-                  className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                  className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all cursor-pointer ${
                     activeTab === 'all'
-                      ? 'bg-white text-black shadow-sm'
-                      : 'text-white/70 hover:text-white'
+                      ? 'bg-white text-gray-900 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
                   }`}
                 >
                   All ({mediaList.length})
                 </button>
                 <button
                   onClick={() => setActiveTab('photos')}
-                  className={`flex items-center gap-1 px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                  className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-all cursor-pointer ${
                     activeTab === 'photos'
-                      ? 'bg-white text-black shadow-sm'
-                      : 'text-white/70 hover:text-white'
+                      ? 'bg-white text-gray-900 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
                   }`}
                 >
-                  <ImageIcon size={12} />
+                  <ImageIcon size={14} />
                   Photos
                 </button>
                 <button
                   onClick={() => setActiveTab('videos')}
-                  className={`flex items-center gap-1 px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                  className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-all cursor-pointer ${
                     activeTab === 'videos'
-                      ? 'bg-white text-black shadow-sm'
-                      : 'text-white/70 hover:text-white'
+                      ? 'bg-white text-gray-900 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
                   }`}
                 >
-                  <Film size={12} />
+                  <Film size={14} />
                   Videos
                 </button>
               </div>
-            </div>
 
-            {/* Media Cards Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
-              {filteredMedia.map((item) => {
-                const isOriginalPhoto = item.tag === 'Original Profile'
-                return (
-                  <div
-                    key={item.id}
-                    onClick={() => setSelectedMedia(item)}
-                    className="group relative rounded-2xl overflow-hidden cursor-pointer transition-all duration-200 hover:scale-102 flex flex-col"
-                    style={{
-                      backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                      border: isOriginalPhoto
-                        ? `2px solid ${friend.favColor}`
-                        : '1px solid rgba(255, 255, 255, 0.1)',
-                      boxShadow: isOriginalPhoto
-                        ? `0 0 20px ${friend.favColor}44`
-                        : '0 4px 20px rgba(0,0,0,0.3)',
-                    }}
-                  >
-                    {/* Media Preview Box */}
+              {/* Media Cards Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {filteredMedia.map((item) => {
+                  const isOriginalPhoto = item.tag === 'Original Profile'
+                  return (
                     <div
-                      className="relative w-full h-48 sm:h-52 overflow-hidden flex items-center justify-center"
-                      style={{ backgroundColor: '#0c0d14' }}
+                      key={item.id}
+                      onClick={() => setSelectedMedia(item)}
+                      className="group relative rounded-2xl overflow-hidden cursor-pointer transition-all duration-200 hover:scale-102 flex flex-col"
+                      style={{
+                        backgroundColor: '#fff',
+                        border: isOriginalPhoto
+                          ? `2px solid ${friend.favColor}`
+                          : '1px solid #eee',
+                        boxShadow: isOriginalPhoto
+                          ? `0 0 20px ${friend.favColor}44`
+                          : '0 4px 20px rgba(0,0,0,0.08)',
+                        borderRadius: 16,
+                      }}
                     >
-                      {item.type === 'video' ? (
-                        <>
-                          <video
-                            src={item.url}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                            muted
-                            playsInline
-                            preload="metadata"
-                          />
-                          <div className="absolute inset-0 bg-black/40 flex items-center justify-center group-hover:bg-black/20 transition-all">
-                            <div className="w-12 h-12 rounded-full bg-white/90 text-black flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                              <Play size={20} fill="currentColor" className="ml-0.5" />
-                            </div>
-                          </div>
-                        </>
-                      ) : (
-                        <img
-                          src={item.url}
-                          alt={item.title}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                          style={{
-                            objectFit: isOriginalPhoto ? 'contain' : 'cover',
-                            backgroundColor: isOriginalPhoto ? `${friend.favColor}22` : 'transparent',
-                          }}
-                        />
-                      )}
-
-                      {/* Tag Pill */}
-                      <span
-                        className="absolute top-2.5 left-2.5 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full backdrop-blur-md"
-                        style={{
-                          backgroundColor: isOriginalPhoto
-                            ? friend.favColor
-                            : 'rgba(0, 0, 0, 0.65)',
-                          color: 'white',
-                          border: '1px solid rgba(255,255,255,0.2)',
-                        }}
+                      {/* Media Preview Box */}
+                      <div
+                        className="relative w-full h-48 sm:h-52 overflow-hidden flex items-center justify-center"
+                        style={{ backgroundColor: '#f5f5f5', borderRadius: '16px 16px 0 0' }}
                       >
-                        {item.tag}
-                      </span>
+                        {item.type === 'video' ? (
+                          <>
+                            <video
+                              src={item.url}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                              muted
+                              playsInline
+                              preload="metadata"
+                            />
+                            <div className="absolute inset-0 bg-black/40 flex items-center justify-center group-hover:bg-black/20 transition-all">
+                              <div className="w-14 h-14 rounded-full bg-white/90 text-gray-900 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                                <Play size={24} fill="currentColor" className="ml-1" />
+                              </div>
+                            </div>
+                          </>
+                        ) : (
+                          <img
+                            src={item.url}
+                            alt={item.title}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            style={{
+                              objectFit: isOriginalPhoto ? 'contain' : 'cover',
+                              backgroundColor: isOriginalPhoto ? `${friend.favColor}22` : 'transparent',
+                            }}
+                          />
+                        )}
 
-                      {/* Type Icon */}
-                      <div className="absolute top-2.5 right-2.5 w-6 h-6 rounded-full bg-black/60 backdrop-blur-md flex items-center justify-center text-white/90">
-                        {item.type === 'video' ? <Film size={12} /> : <ImageIcon size={12} />}
+                        {/* Tag Pill */}
+                        <span
+                          className="absolute top-3 left-3 text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full"
+                          style={{
+                            backgroundColor: isOriginalPhoto
+                              ? friend.favColor
+                              : 'rgba(0, 0, 0, 0.65)',
+                            color: 'white',
+                            border: '1px solid rgba(255,255,255,0.2)',
+                            backdropFilter: 'blur(4px)',
+                          }}
+                        >
+                          {item.tag}
+                        </span>
+
+                        {/* Type Icon */}
+                        <div className="absolute top-3 right-3 w-7 h-7 rounded-full bg-black/60 backdrop-blur-md flex items-center justify-center text-white/90">
+                          {item.type === 'video' ? <Film size={14} /> : <ImageIcon size={14} />}
+                        </div>
+                      </div>
+
+                      {/* Card Content & Caption */}
+                      <div className="p-4 flex-1 flex flex-col justify-between">
+                        <div>
+                          <h4 className="text-base font-bold mb-1 line-clamp-1" style={{ color: '#1a1a2e' }}>
+                            {item.title}
+                          </h4>
+                          <p className="text-sm text-gray-600 italic leading-relaxed m-0 line-clamp-2" style={{ color: '#555' }}>
+                            &ldquo;{item.caption}&rdquo;
+                          </p>
+                        </div>
+                        <div className="mt-3 flex items-center justify-between text-xs text-gray-500 pt-2 border-t border-gray-100">
+                          <span className="uppercase font-semibold tracking-wider">
+                            Tap to view
+                          </span>
+                          <span className="font-mono text-gray-500">
+                            {item.type === 'video' ? '🎬 VIDEO' : '📸 PHOTO'}
+                          </span>
+                        </div>
                       </div>
                     </div>
-
-                    {/* Card Content & Caption */}
-                    <div className="p-3.5 flex-1 flex flex-col justify-between">
-                      <div>
-                        <h4 className="text-sm font-bold text-white mb-1 line-clamp-1">
-                          {item.title}
-                        </h4>
-                        <p className="text-xs text-white/70 italic leading-relaxed m-0 line-clamp-2">
-                          &ldquo;{item.caption}&rdquo;
-                        </p>
-                      </div>
-                      <div className="mt-3 flex items-center justify-between text-[11px] text-white/40 pt-2 border-t border-white/5">
-                        <span className="uppercase font-semibold tracking-wider">
-                          Tap to view
-                        </span>
-                        <span className="font-mono text-white/60">
-                          {item.type === 'video' ? '🎬 VIDEO' : '📸 PHOTO'}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                )
-              })}
+                  )
+                })}
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       {/* LIGHTBOX */}
@@ -682,7 +672,7 @@ export default function SecretVault({ friend, isOpen, onClose }: SecretVaultProp
                 &ldquo;{selectedMedia.caption}&rdquo;
               </p>
               <div className="flex items-center justify-between mt-2 pt-2 border-t border-white/5 text-xs text-white/50">
-                <span>{friend.name}&apos;S VAULT ARCHIVE</span>
+                <span>{friend.name}'S VAULT ARCHIVE</span>
                 <span>
                   {currentMediaIndex + 1} of {filteredMedia.length}
                 </span>

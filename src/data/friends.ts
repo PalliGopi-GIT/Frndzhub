@@ -1,3 +1,12 @@
+export interface VaultMediaItem {
+  id: string
+  type: 'image' | 'video'
+  url: string
+  title: string
+  caption: string
+  tag: string
+}
+
 export interface Friend {
   id: string
   name: string
@@ -18,6 +27,8 @@ export interface Friend {
   rivalScore: number
   bestMemory: string
   secretTalent: string
+  passcode: string
+  vaultMedia: VaultMediaItem[]
 }
 
 export const FRIENDS: Friend[] = [
@@ -41,6 +52,41 @@ export const FRIENDS: Friend[] = [
     rivalScore: 85,
     bestMemory: 'The hostel raid of 2023',
     secretTalent: 'Can solve a Rubik\'s cube in 40 seconds',
+    passcode: '4102',
+    vaultMedia: [
+      {
+        id: 'f1-1',
+        type: 'image',
+        url: '/friend-photos/Friend1.png',
+        title: 'The Bossman Stare',
+        caption: 'When the entire plan is falling apart but you still pretend everything is calculated.',
+        tag: 'Original Profile',
+      },
+      {
+        id: 'f1-2',
+        type: 'image',
+        url: 'https://images.unsplash.com/photo-1578632767115-351597cf2477?w=800&auto=format&fit=crop&q=80',
+        title: '3 AM Anime Marathon Mode',
+        caption: '"Just one more episode bro, then I will sleep" - said at 3:45 AM.',
+        tag: 'Guilty Pleasure',
+      },
+      {
+        id: 'f1-3',
+        type: 'image',
+        url: 'https://images.unsplash.com/photo-1563245372-f21724e3856d?w=800&auto=format&fit=crop&q=80',
+        title: 'Midnight Food Radar',
+        caption: 'Demonstrating the superpower: Sniffing out hot food within a 5km radius.',
+        tag: 'Superpower',
+      },
+      {
+        id: 'f1-4',
+        type: 'video',
+        url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+        title: 'The Legendary Hostel Raid',
+        caption: 'Top secret archived footage of the historic 2023 midnight hostel raid.',
+        tag: 'Vault Video',
+      },
+    ],
   },
   {
     id: 'friend2',
@@ -62,6 +108,41 @@ export const FRIENDS: Friend[] = [
     rivalScore: 72,
     bestMemory: 'The accidental karaoke night',
     secretTalent: 'Can recite movie quotes from memory',
+    passcode: '2620',
+    vaultMedia: [
+      {
+        id: 'f2-1',
+        type: 'image',
+        url: '/friend-photos/Friend2.png',
+        title: 'The Stoic Anchor',
+        caption: 'Staying completely unbothered while the rest of the gang causes absolute chaos.',
+        tag: 'Original Profile',
+      },
+      {
+        id: 'f2-2',
+        type: 'image',
+        url: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=800&auto=format&fit=crop&q=80',
+        title: '2 AM Philosophical Awakening',
+        caption: 'Reading page 342 of "How to Stay Calm While Your Friends Are Crazy".',
+        tag: 'Guilty Pleasure',
+      },
+      {
+        id: 'f2-3',
+        type: 'image',
+        url: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&auto=format&fit=crop&q=80',
+        title: 'Exam Hall Savior',
+        caption: 'The exact face he makes when whisper-transmitting question 4 answers.',
+        tag: 'Superpower',
+      },
+      {
+        id: 'f2-4',
+        type: 'video',
+        url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyBlazes.mp4',
+        title: 'Accidental Karaoke Solo',
+        caption: 'He said "I don\'t sing" and proceeded to drop the performance of the year.',
+        tag: 'Vault Video',
+      },
+    ],
   },
   {
     id: 'friend3',
@@ -83,6 +164,41 @@ export const FRIENDS: Friend[] = [
     rivalScore: 60,
     bestMemory: 'The great pizza debate of 2022',
     secretTalent: 'Perfect mimic of 5 different accents',
+    passcode: '4219',
+    vaultMedia: [
+      {
+        id: 'f3-1',
+        type: 'image',
+        url: '/friend-photos/Friend3.png',
+        title: 'Caught in 4K Behind The Phone',
+        caption: 'Pretending to take a normal selfie right before dropping the funniest roast ever.',
+        tag: 'Original Profile',
+      },
+      {
+        id: 'f3-2',
+        type: 'image',
+        url: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=800&auto=format&fit=crop&q=80',
+        title: 'The Great Pizza Court Case',
+        caption: 'Re-enactment of the 2022 argument over who ate the last slice of extra cheese.',
+        tag: 'Inside Joke',
+      },
+      {
+        id: 'f3-3',
+        type: 'image',
+        url: 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=800&auto=format&fit=crop&q=80',
+        title: 'Gordon Ramsay Junior',
+        caption: 'Watching 4 hours of MasterChef only to boil instant noodles at 1 AM.',
+        tag: 'Guilty Pleasure',
+      },
+      {
+        id: 'f3-4',
+        type: 'video',
+        url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4',
+        title: '5 Accents in 30 Seconds',
+        caption: 'Live demonstration of his secret talent switching from British royal to local slang.',
+        tag: 'Vault Video',
+      },
+    ],
   },
   {
     id: 'friend4',
@@ -104,6 +220,41 @@ export const FRIENDS: Friend[] = [
     rivalScore: 90,
     bestMemory: 'The 48-hour coding marathon',
     secretTalent: 'Can type 120 words per minute blindfolded',
+    passcode: '1004',
+    vaultMedia: [
+      {
+        id: 'f4-1',
+        type: 'image',
+        url: '/friend-photos/Friend4.png',
+        title: 'The Hacker Stance',
+        caption: 'One second before pushing directly to production with "fix typo" commit message.',
+        tag: 'Original Profile',
+      },
+      {
+        id: 'f4-2',
+        type: 'image',
+        url: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=800&auto=format&fit=crop&q=80',
+        title: 'Hour 47 of The Coding Marathon',
+        caption: 'Powered entirely by iced coffee and sheer determination to beat the deadline.',
+        tag: 'Best Memory',
+      },
+      {
+        id: 'f4-3',
+        type: 'image',
+        url: 'https://images.unsplash.com/photo-1529699211952-734e80c4d42b?w=800&auto=format&fit=crop&q=80',
+        title: 'Chess Match Against Himself',
+        caption: 'Playing 4D chess against his own brain and somehow finding a way to lose.',
+        tag: 'Guilty Pleasure',
+      },
+      {
+        id: 'f4-4',
+        type: 'video',
+        url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4',
+        title: 'Blindfolded 120 WPM Typing Test',
+        caption: 'The keyboard is smoking and the code somehow compiled on first try.',
+        tag: 'Vault Video',
+      },
+    ],
   },
   {
     id: 'friend5',
@@ -125,6 +276,41 @@ export const FRIENDS: Friend[] = [
     rivalScore: 78,
     bestMemory: 'The midnight adventure',
     secretTalent: 'Can juggle 5 balls while riding a unicycle',
+    passcode: '5629',
+    vaultMedia: [
+      {
+        id: 'f5-1',
+        type: 'image',
+        url: '/friend-photos/Friend5.png',
+        title: 'Unpredictable Energy',
+        caption: '0.05 seconds before saying "Watch this" and doing something nobody expected.',
+        tag: 'Original Profile',
+      },
+      {
+        id: 'f5-2',
+        type: 'image',
+        url: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800&auto=format&fit=crop&q=80',
+        title: 'Midnight Street Food Cartel',
+        caption: 'Navigating through dark alleyways to find the best late-night dosa spot on earth.',
+        tag: 'Superpower',
+      },
+      {
+        id: 'f5-3',
+        type: 'image',
+        url: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800&auto=format&fit=crop&q=80',
+        title: 'The Midnight Adventure Files',
+        caption: 'How a simple "let\'s buy water" trip turned into a 3-hour cross-city expedition.',
+        tag: 'Inside Joke',
+      },
+      {
+        id: 'f5-4',
+        type: 'video',
+        url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4',
+        title: 'The Unicycle Juggling Routine',
+        caption: 'Balancing physics, danger, and 5 tennis balls all at once.',
+        tag: 'Vault Video',
+      },
+    ],
   },
   {
     id: 'friend6',
@@ -146,5 +332,40 @@ export const FRIENDS: Friend[] = [
     rivalScore: 88,
     bestMemory: 'The 2 AM plan that actually worked',
     secretTalent: 'Can read backwards upside down',
+    passcode: '5511',
+    vaultMedia: [
+      {
+        id: 'f6-1',
+        type: 'image',
+        url: '/friend-photos/Friend6.png',
+        title: 'The Mastermind Sunglasses',
+        caption: 'Thinking 14 moves ahead while pretending to just listen to the conversation.',
+        tag: 'Original Profile',
+      },
+      {
+        id: 'f6-2',
+        type: 'image',
+        url: 'https://images.unsplash.com/photo-1528819622765-d6bcf132f793?w=800&auto=format&fit=crop&q=80',
+        title: '2 AM Tactical Board Meeting',
+        caption: 'Plotting out the scheme that everyone laughed at until it worked 100% perfectly.',
+        tag: 'Best Memory',
+      },
+      {
+        id: 'f6-3',
+        type: 'image',
+        url: 'https://images.unsplash.com/photo-1586165368502-1bad197a6461?w=800&auto=format&fit=crop&q=80',
+        title: 'Grandmaster Tactics',
+        caption: 'Calculating chess puzzles during awkward college presentations.',
+        tag: 'Guilty Pleasure',
+      },
+      {
+        id: 'f6-4',
+        type: 'video',
+        url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4',
+        title: 'Reading Inverted upside Down',
+        caption: 'Demonstrating how to read an inverted document faster than normal people.',
+        tag: 'Vault Video',
+      },
+    ],
   },
 ]

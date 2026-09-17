@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
+import SecretVault from '../components/SecretVault.tsx'
 import { ArrowLeft, Sparkles, ExternalLink, Shield } from 'lucide-react'
 import { FRIENDS, type Friend } from '../data/friends.ts'
 import { useMediaQuery } from '../hooks/useMediaQuery.ts'
@@ -126,6 +127,7 @@ export default function FriendDetail() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const isMobile = useMediaQuery('(max-width: 639px)')
+  const [isVaultOpen, setIsVaultOpen] = useState(false)
 
   const friend = FRIENDS.find((f) => f.id === id)
 
@@ -289,6 +291,33 @@ export default function FriendDetail() {
               {friend.superpower}
             </p>
           </div>
+
+          {/* Secret Vault */}
+          <div>
+            <div className="flex items-center gap-1.5 mb-2">
+              <Sparkles size={14} style={{ opacity: 0.85 }} />
+              <p className="uppercase text-xs font-bold tracking-widest" style={{ opacity: 0.75, margin: 0 }}>
+                Secret Vault
+              </p>
+            </div>
+            <button
+              onClick={() => setIsVaultOpen(true)}
+              className="w-full inline-flex items-center justify-center gap-2 px-3.5 py-2 rounded-2xl transition-all duration-200 hover:scale-103 hover:bg-white/20"
+              style={{
+                backgroundColor: 'rgba(255, 255, 255, 0.14)',
+                border: '1px solid rgba(255, 255, 255, 0.22)',
+                color: 'white',
+                textDecoration: 'none',
+                fontSize: isMobile ? '0.95rem' : '1.05rem',
+                fontWeight: 600,
+              }}
+            >
+              <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ fontSize: '1.2em' }}>🔒</span>
+                Open Secret Locker
+              </span>
+            </button>
+          </div>
         </div>
 
         {/* Gunky Pleasure */}
@@ -337,6 +366,13 @@ export default function FriendDetail() {
         {/* Bottom padding */}
         <div style={{ height: isMobile ? '2rem' : '4rem' }} />
       </div>
+
+      {/* Secret Vault Modal */}
+      <SecretVault
+        friend={friend}
+        isOpen={isVaultOpen}
+        onClose={() => setIsVaultOpen(false)}
+      />
     </div>
   )
 }

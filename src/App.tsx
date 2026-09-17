@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, ArrowRight } from 'lucide-react'
 import { FRIENDS, type Friend } from './data/friends.ts'
 import { useMediaQuery } from './hooks/useMediaQuery.ts'
+import SecretVault from './components/SecretVault.tsx'
 import './index.css'
 
 type Direction = 'next' | 'prev'
@@ -80,7 +81,11 @@ function CarouselItem({
 
   // Determine scaling / size per friend so character photos cover the background name consistently
   const isLargeCoverFriend =
-    friend.id === 'friend1' || friend.id === 'friend2' || friend.id === 'friend4' || friend.id === 'friend5'
+    friend.id === 'friend1' ||
+    friend.id === 'friend2' ||
+    friend.id === 'friend3' ||
+    friend.id === 'friend4' ||
+    friend.id === 'friend5'
 
   // Moksha's photo is a tight headshot / close-up face cutout, so we scale it down and center it nicely
   const isMoksha = friend.id === 'friend6'
@@ -143,6 +148,7 @@ function GrainOverlay() {
 export default function App() {
   const [activeIndex, setActiveIndex] = useState(0)
   const [isAnimating, setIsAnimating] = useState(false)
+  const [isVaultOpen, setIsVaultOpen] = useState(false)
   const isMobile = useMediaQuery('(max-width: 639px)')
   const shouldReduceMotion = useMediaQuery('(prefers-reduced-motion: reduce)')
   const navigate = useNavigate()
@@ -302,7 +308,7 @@ export default function App() {
           className="absolute flex items-center gap-2 transition-opacity duration-200 hover:opacity-100 bg-transparent border-none cursor-pointer p-0"
           style={{
             bottom: isMobile ? '1.5rem' : '5rem',
-            right: isMobile ? '1rem' : '2.5rem',
+            right: isMobile ? '8rem' : '2.5rem',
             zIndex: 60,
             fontFamily: "'Anton', sans-serif",
             fontSize: 'clamp(20px, 4vw, 56px)',
@@ -317,7 +323,29 @@ export default function App() {
           DISCOVER IT
           <ArrowRight className="w-5 h-5 sm:w-8 sm:h-8" strokeWidth={2.25} color="white" />
         </button>
+
+        {/* Secret Locker shortcut button */}
+        <button
+          onClick={() => setIsVaultOpen(true)}
+          className="absolute flex items-center gap-2 transition-opacity duration-200 hover:opacity-100 bg-transparent border-none cursor-pointer p-0"
+          style={{
+            bottom: isMobile ? '1.5rem' : '5rem',
+            right: isMobile ? '1rem' : '14rem',
+            zIndex: 60,
+            fontFamily: "'Inter', sans-serif",
+            fontSize: isMobile ? '0.7rem' : '0.875rem',
+            fontWeight: 700,
+            color: 'white',
+            opacity: 0.9,
+            letterSpacing: '0.04em',
+            lineHeight: 1,
+            textTransform: 'uppercase',
+          }}
+        >
+          🔒 SECRET LOCKER
+        </button>
       </div>
+      <SecretVault friend={activeFriend} isOpen={isVaultOpen} onClose={() => setIsVaultOpen(false)} />
     </div>
   )
 }
